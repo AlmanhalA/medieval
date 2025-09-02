@@ -1,76 +1,51 @@
 using UnityEngine;
 
-// This script requires a 3D Rigidbody component.
-[RequireComponent(typeof(Rigidbody))]
 public class PlayerController : MonoBehaviour
 {
-    public float moveSpeed = 5f;
-    public float jumpForce = 8f;
+    public CharacterController controller;
+    public Transform cam;
+    public CharacterAnimator characterAnimator; 
 
-    public Transform cameraTransform;
-    public float rotationSmoothTime = 0.1f;
-    private float turnSmoothVelocity;
-    private Rigidbody rb;
-    private bool isGrounded;
-    private Vector3 moveDirection;
+    public float speed = 6f;
+    public float turnSmoothTime = 0.1f;
+    float turnSmoothVelocity;
 
-    void Start()
+    public float gravity = -9.81f;
+    public float jumpHeight = 1.5f;
+    Vector3 playerVelocity;
+    bool isGrounded;
+
+    void Update()
     {
-        rb = GetComponent<Rigidbody>();
-        rb.freezeRotation = true; 
-        isGrounded = true; 
-    }
-    void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
+        isGrounded = controller.isGrounded;
+
+        if (isGrounded && playerVelocity.y < 0)
         {
-            isGrounded = true;
+            playerVelocity.y = -2f;
         }
-    }
-   void Update()
-    {
-        float horizontalInput = Input.GetAxisRaw("Horizontal");
-        float verticalInput = Input.GetAxisRaw("Vertical");
-        moveDirection = new Vector3(horizontalInput, 0f, verticalInput).normalized;
+
+        float horizontal = Input.GetAxisRaw("Horizontal");
+        float vertical = Input.GetAxisRaw("Vertical");
+        Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
+
+        characterAnimator.SetWalking(direction.magnitude >= 0.1f);
+
+        if (direction.magnitude >= 0.1f)
+        {
+            float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cam.eulerAngles.y;
+            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
+            transform.rotation = Quaternion.Euler(0f, angle, 0f);
+
+            Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
+            controller.Move(moveDir.normalized * speed * Time.deltaTime);
+        }
 
         if (Input.GetButtonDown("Jump") && isGrounded)
         {
-            Jump();
+            playerVelocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
         }
-        // Only move and rotate if there is input.
-        if (moveDirection.magnitude >= 0.1f)
-        {
-            // --- Rotation ---
-            // Calculate the angle the player needs to turn to face the movement direction relative to the camera.
-            float targetAngle = Mathf.Atan2(moveDirection.x, moveDirection.z) * Mathf.Rad2Deg + cameraTransform.eulerAngles.y;
-            // Smoothly dampen the rotation angle to avoid a snapping motion.
-            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, rotationSmoothTime);
-            // Apply the calculated rotation to the player.
-            rb.MoveRotation(Quaternion.Euler(0f, angle, 0f));
 
-            // --- Movement ---
-            // Calculate the movement direction based on the target rotation.
-            Vector3 moveVector = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
-            // Apply movement using transform.Translate. We use Time.fixedDeltaTime because we are in FixedUpdate.
-            transform.Translate(moveVector.normalized * moveSpeed * Time.fixedDeltaTime, Space.World);
-        }
-        else
-        {
-            // If there's no input, stop horizontal movement to prevent sliding.
-            rb.velocity = new Vector3(0, rb.velocity.y, 0);
-        }
-    }
-
-    /// <summary>
-    /// Handles the physics of making the player jump.
-    /// </summary>
-
-
-    private void Jump()
-    {
-        // Reset vertical velocity to ensure consistent jump height.
-        rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
-        // Apply an upward force.
-        rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+        playerVelocity.y += gravity * Time.deltaTime;
+        controller.Move(playerVelocity * Time.deltaTime);
     }
 }
