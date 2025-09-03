@@ -1,0 +1,37 @@
+controls:
+wasd to move
+right click to attack
+when dead spacebar to restart
+
+1-enviroment set up
+used 2 assets packs from the asset store, one for the terrain and one for the buildings
+3rd person camera made following a youtube guide using cinemachine
+lighting from the asset pack looks fine so I didn't change it
+added colliders to buildings preventing the player to walk through
+main theme is medieval France
+
+2-character and control
+imported a 3d knight and set up the animation controller
+implemented movement using player controller instead of rigid body since that's what the cinemachine tutorial used
+attack and movement input are set
+
+3-enemy AI and spawning
+created enemy prefab that uses vectors
+randomly spawn enemy with coroutine and an array of spawn points
+enemy attack uses a trigger collision that damages player when entered
+enemy dies when attacked by player attack also using trigger collision that appears when player attacks
+no damage effect done but particle effect plays on player death
+
+4-game mechanics
+player has 100hp that goes down 10 every time enemy lands a hit
+player's hp is displayed via the log after every hit
+enemy spawns at random times and locations via coroutine and preset spawn points
+player score is displayed in the log after every kill tracking how many kills the player gets
+when player dies "game over" appears in logs and the player can restart with space bar
+
+5-audio and effects
+added audio listener and source for background music
+particle effects play on player death
+
+6-future concepts
+used coroutines

@@ -423,6 +423,7 @@
 "Assets/Scripts/PlayerAttack.cs"
 "Assets/Scripts/PlayerController.cs"
 "Assets/Scripts/PlayerHealth.cs"
+"Assets/Scripts/SpawnSystem.cs"
 -langversion:9.0
 /deterministic
 /optimize+

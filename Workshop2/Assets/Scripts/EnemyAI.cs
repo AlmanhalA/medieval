@@ -6,6 +6,9 @@ public class EnemyAI : MonoBehaviour
     public float moveSpeed = 3.5f;
     public GameObject player;
 
+    public float gravity = -9.81f;
+    private float velocityY = 0f;
+
     private CharacterController controller;
     private CharacterAnimator characterAnimator;
 
@@ -34,13 +37,21 @@ public class EnemyAI : MonoBehaviour
         }
 
 
+        if (controller.isGrounded && velocityY < 0)
+        {
+            velocityY = -2f;
+        }
+
+        velocityY += gravity * Time.deltaTime;
+
         Vector3 direction = (target.position - transform.position).normalized;
-
         direction.y = 0;
-
         FaceTarget(direction);
 
-        controller.Move(direction * moveSpeed * Time.deltaTime);
+        Vector3 move = direction * moveSpeed;
+        move.y = velocityY;
+
+        controller.Move(move * Time.deltaTime);
 
         characterAnimator.SetWalking(true);
     }
@@ -48,11 +59,10 @@ public class EnemyAI : MonoBehaviour
     void FaceTarget(Vector3 direction)
     {
         if (direction == Vector3.zero) return;
-
         Quaternion lookRotation = Quaternion.LookRotation(direction);
-
         transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
     }
+
     void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
@@ -65,4 +75,3 @@ public class EnemyAI : MonoBehaviour
         }
     }
 }
-
