@@ -3,19 +3,23 @@ using UnityEngine;
 
 public class PlayerAttack : MonoBehaviour
 {
-    public Collider attackHitbox;
+    public GameObject attackHitboxObject;
     public CharacterAnimator characterAnimator;
+
     public int kills = 0;
-    public float attackDuration = 1f;
+    public float attackDuration = 0.5f;
+    public float attackCD = 1f;
+
+    private bool isAttacking = false;
 
     void Start()
     {
-        attackHitbox.enabled = false;
+        attackHitboxObject.SetActive(false);
     }
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && !isAttacking)
         {
             Attack();
         }
@@ -23,29 +27,28 @@ public class PlayerAttack : MonoBehaviour
 
     void Attack()
     {
-
         StartCoroutine(AttackCoroutine());
     }
 
     IEnumerator AttackCoroutine()
     {
-        characterAnimator.SetAttacking(true); //error here
-
-        attackHitbox.enabled = true;
+        isAttacking = true;
+        characterAnimator.SetAttacking(true);
+        attackHitboxObject.SetActive(true);
 
         yield return new WaitForSeconds(attackDuration);
 
-        attackHitbox.enabled = false;
+        attackHitboxObject.SetActive(false);
         characterAnimator.SetAttacking(false);
+
+        yield return new WaitForSeconds(attackCD - attackDuration);
+        
+        isAttacking = false;
     }
 
-    void OnTriggerEnter(Collider other)
+    public void RegisterKill()
     {
-        if (other.CompareTag("Enemy"))
-        {
-            kills++;
-            Debug.Log("Total kills: " + kills);
-            Destroy(other.gameObject);
-        }
+        kills++;
+        Debug.Log("Total kills: " + kills);
     }
 }
